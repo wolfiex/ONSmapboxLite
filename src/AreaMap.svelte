@@ -39,7 +39,12 @@ export let mapsource = {
         type: "vector",
         tiles: ["https://cdn.ons.gov.uk/maptiles/t9/{z}/{x}/{y}.pbf"],
         promoteId: { OA_bound_ethnicity: "oa11cd" }
-      }
+      },
+    //   { // example data source
+    //     type: 'geojson',
+    //     data: data,
+    //     promoteId: { layer_name: 'code'}
+    //   }
     
 };
 
