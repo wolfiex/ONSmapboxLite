@@ -65,9 +65,9 @@ export let maplayer = {
 
 
 export let location = {
-    bounds: [[-5.816, 49.864], [1.863, 55.872]] // England & Wales bounding box
+    bounds: [[-5.816, 49.864], [1.863, 55.872]], // England & Wales bounding box
 };
-
+let maxbounds = [[-9, 47], [5, 57]];
 
 
 
@@ -82,7 +82,10 @@ async function init() {
     style: mapstyle,
     minZoom: minzoom,
     maxZoom: maxzoom,
-    zoom: 2,
+    maxBounds: maxbounds,
+    pitch: 15,
+    center: [0, 52],
+    zoom: 4,
   });
 
     mapobject.addControl(new mapboxgl.NavigationControl(),'bottom-right');
