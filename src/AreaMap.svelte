@@ -36,7 +36,7 @@ let maxzoom = 14;
 
 export const customselector = true
 export const draw_type = writable(undefined);
-export const datalayers = writable(['oa11_boundaries']);
+export const datalayers = writable(['centroids']);
 
 
 
@@ -89,11 +89,21 @@ export let maplayer = [
             id: "oa11_boundaries",
             type:  "line",
             source:  "oa11s",
-            "source-layer":  "OA11",
+            "source-layer":  "areas",
             paint: {
               //'feature-state','selected'], true], 'rgba(0, 0, 0, 0.2)',
               "line-color": "red"
               // ],
+            }
+        },
+        {
+            id: "oa11_centroids",
+            type:  "circle",
+            source:  "oa11s",
+            "source-layer":  "centroids01",
+            paint: {
+              'circle-radius':4.01,  
+              'circle-color':'green'
             }
         }
 ]
@@ -105,7 +115,7 @@ export let maplayer = [
 export let location = {
     bounds: [[-5.816, 49.864], [1.863, 55.872]], // England & Wales bounding box
 };
-let maxbounds = [[-9, 47], [5, 57]];
+let maxbounds = null;[[-9, 47], [5, 57]];
 var draw 
 
 
@@ -191,12 +201,8 @@ async function init_draw() {
 
     draw = new MapboxDraw({
         displayControlsDefault: false,
-        controls: {
-        draw_polygon: true,
-        draw_circle:true,
-        draw_rectangle:true,
-        
-        trash: true,
+        controls: {        
+        trash: false,
         },
 
         // defaultMode: 'draw_polygon',
@@ -240,35 +246,44 @@ function change (event) {
       console.log('circle', 'center', center, 'radius', radius);
     }
 
-    var lat = geojson.geometry.coordinates[0].map(p=> p[0]);
-    var lng = geojson.geometry.coordinates[0].map(p=>p[1]);
+    var lat = geojson.geometry.coordinates[0].map(p=> p[1]);
+    var lng = geojson.geometry.coordinates[0].map(p=>p[0]);
     
+    //n  push current map bounds to stop shrink zooming. 
+    Object.values(mapobject.getBounds()).forEach(p=>{lat.push(p.lat); lng.push(p.lng); console.log(p)})
+      
 
-      var px = 5;
-      var min_coords = [
-        Math.min.apply(null, lat)-px,
-        Math.min.apply(null, lng)-px
+
+    var min_coords = [
+        Math.min.apply(null, lng),
+        Math.min.apply(null, lat)
       ]
     var max_coords = [
-        Math.max.apply(null, lat)+px,
-        Math.max.apply(null, lng)+px
+        Math.max.apply(null, lng),
+        Math.max.apply(null, lat)
     ]
+   
+    const bbox = [min_coords, max_coords]
 
-      const bbox = geojson.geometry.coordinates[0].map(d=>mapobject.project
-        (d))//[min_coords, max_coords];
+      
+      
+      
+
+      mapobject.fitBounds( bbox, { padding: 20 } );
+
+      // const bbox = geojson.geometry.coordinates[0]//.map(d=>mapobject.project(d))//
       
 
     console.error('bbox',bbox,lat,lng)
-    //   // Find features intersecting the bounding box.
-    console.log('set map to bbox')
+    //   // Find features intersecting the bounding 
 
-    const selectedFeatures = mapobject.queryRenderedFeatures(bbox, {
+    const selectedFeatures = mapobject.queryRenderedFeatures(bbox.map(d=>mapobject.project(d)), {
         layers: get(datalayers)
       });
 
       console.warn(selectedFeatures);
     //   // console.error();
-      const fips = selectedFeatures.map((feature) => feature.properties.OA11NM);
+      const fips = selectedFeatures.map((feature) => feature.properties.lsoa01nm);
     //   // Set a filter matching selected features by FIPS codes
     //   // to activate the 'counties-highlighted' layer.
     //   // map.setFilter("oa_boundary", ["in", "oa11cd", ...fips]);
@@ -286,8 +301,12 @@ function change (event) {
 
 
 
+    
 
   }
+
+  mapobject.on('zoom',()=> console.log('zoomend',mapobject.getZoom()))
+  
 
 
 

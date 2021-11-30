@@ -13,26 +13,49 @@
 {/if}
 
 
-<AreaMap />
+<AreaMap bind:draw_type={drwt}/>
 
+
+<Panel>
+    <div class="" style="">
+        <h1>Draw Your Own Geography</h1>
+
+        <form onsubmit="return false">
+            <button on:click={()=>drwt.set('draw_rectangle')}>Rectangular</button>
+            <button on:click={()=>$drwt='draw_circle'}>Radius</button>
+            <button on:click={()=>$drwt='draw_polygon'}>Custom Polygon</button>
+        </form>
+        
+        </div>
+       
+    </Panel>
 </main>
 
 
 <script>
     
 import { onMount } from "svelte";
-import AreaMap from './AreaMap.svelte';
+import {default as AreaMap} from './AreaMap.svelte';
 import Loader from './Loader.svelte';
 
+import Panel from './Panel.svelte';
+// import AreaMap ,{ draw_type } from ".s/AreaMap";
 
 let loaded=false
 
+let drwt;
 
 async function init(){
 
     loaded = true;
+	console.log($drwt,AreaMap)
+	$drwt = 'draw_circle'
+
 
 }
+
+
+// draw_type.set('draw_radius')
 
 
 

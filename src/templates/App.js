@@ -1,17 +1,26 @@
 
 import { onMount } from "svelte";
-import AreaMap from './AreaMap.svelte';
+import {default as AreaMap} from './AreaMap.svelte';
 import Loader from './Loader.svelte';
 
+import Panel from './Panel.svelte';
+// import AreaMap ,{ draw_type } from ".s/AreaMap";
 
 let loaded=false
 
+let drwt;
 
 async function init(){
 
     loaded = true;
+	console.log($drwt,AreaMap)
+	$drwt = 'draw_circle'
+
 
 }
+
+
+// draw_type.set('draw_radius')
 
 
 

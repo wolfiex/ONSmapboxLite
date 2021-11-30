@@ -6,4 +6,19 @@
 {/if}
 
 
-<AreaMap />
+<AreaMap bind:draw_type={drwt}/>
+
+
+<Panel>
+    <div class="" style="">
+        <h1>Draw Your Own Geography</h1>
+
+        <form onsubmit="return false">
+            <button on:click={()=>drwt.set('draw_rectangle')}>Rectangular</button>
+            <button on:click={()=>$drwt='draw_circle'}>Radius</button>
+            <button on:click={()=>$drwt='draw_polygon'}>Custom Polygon</button>
+        </form>
+        
+        </div>
+       
+    </Panel>
