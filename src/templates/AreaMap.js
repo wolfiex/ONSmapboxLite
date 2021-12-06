@@ -17,6 +17,14 @@ let minzoom = 4;
 let maxzoom = 14;
 
 
+
+
+import proj4 from 'proj4';
+const osgb = '++proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +datum=OSGB36 +units=m +no_defs ';
+const wgs84 = '+proj=longlat +datum=WGS84 +no_defs ';
+// console.error(proj4(osgb,wgs84,[450048.598, 532898.59600000095088]))
+// console.error(proj4(wgs84,osgb,proj4(osgb,wgs84,[450048.598, 532898.59600000095088])))
+
 export const customselector = true
 export const draw_type = writable(undefined);
 export const datalayers = writable(['centroids']);
@@ -79,16 +87,16 @@ export let maplayer = [
               // ],
             }
         },
-        {
-            id: "oa11_centroids",
-            type:  "circle",
-            source:  "oa11s",
-            "source-layer":  "centroids01",
-            paint: {
-              'circle-radius':4.01,  
-              'circle-color':'green'
-            }
-        }
+        // {
+        //     id: "oa11_centroids",
+        //     type:  "circle",
+        //     source:  "oa11s",
+        //     "source-layer":  "centroids01",
+        //     paint: {
+        //       'circle-radius':4.01,  
+        //       'circle-color':'green'
+        //     }
+        // }
 ]
 
 
@@ -219,24 +227,32 @@ mapobject.on('draw.modechange', (event) => {
 }
 
 /// create or update
-function change (event) {
+async function change (event) {
     const geojson = event.features[0];
     console.log('update', event.action, geojson);
 
     if (MapboxDrawGeodesic.isCircle(geojson)) {
       const center = MapboxDrawGeodesic.getCircleCenter(geojson);
-      const radius = MapboxDrawGeodesic.getCircleRadius(geojson);
+      const radius = MapboxDrawGeodesic.getCircleRadius(geojson)/100;// must divide by 100 to get accurate results
       console.log('circle', 'center', center, 'radius', radius);
+
+      // lets space points around the centre to create a polygon
+
+      var numberOfPoints = 20;
+      var theta = 2.0*Math.PI/numberOfPoints;
+
+      geojson.geometry.coordinates[0] = []
+
+      for ( var i = 1; i <= numberOfPoints; i++ ) {
+        geojson.geometry.coordinates[0].push([( radius * Math.cos(theta * i) + center[0] ),( radius * Math.sin(theta * i) + center[1] )])
+      }
+
     }
 
-    var lat = geojson.geometry.coordinates[0].map(p=> p[1]);
-    var lng = geojson.geometry.coordinates[0].map(p=>p[0]);
+    const coords = geojson.geometry.coordinates[0].map(d=>proj4(wgs84, osgb,d))
+    var lat = coords.map(p=> p[1]);
+    var lng = coords.map(p=>p[0]);
     
-    //n  push current map bounds to stop shrink zooming. 
-    Object.values(mapobject.getBounds()).forEach(p=>{lat.push(p.lat); lng.push(p.lng); console.log(p)})
-      
-
-
     var min_coords = [
         Math.min.apply(null, lng),
         Math.min.apply(null, lat)
@@ -246,20 +262,65 @@ function change (event) {
         Math.max.apply(null, lat)
     ]
    
-    const bbox = [min_coords, max_coords]
+    const bboxosm = [min_coords, max_coords]
 
-      
-      
-      
 
-      mapobject.fitBounds( bbox, { padding: 20 } );
+    const lsoa = `https://ons-inspire.esriuk.com/arcgis/rest/services/Census_Boundaries/Lower_Super_Output_Areas_December_2011_Centroids/MapServer/0/query?f=json&returnIdsOnly=false&returnCountOnly=false&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=${[bboxosm[0].join(','),bboxosm[1].join(',')].join(',')}&where=1%3D1`
 
-      // const bbox = geojson.geometry.coordinates[0]//.map(d=>mapobject.project(d))//
-      
+    const oa = `https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Output_Areas_December_2011_Population_Weighted_Centroids/FeatureServer/0/query?f=json&returnIdsOnly=false&returnCountOnly=false&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=${[bboxosm[0].join(','),bboxosm[1].join(',')].join(',')}&where=1=1`
 
-    console.error('bbox',bbox,lat,lng)
-    //   // Find features intersecting the bounding 
+    let centroids = await fetch(oa).then(r=>r.json()).then(r=>{console.error(r);const id = Object.keys(r.features[0].attributes)[0
+    ]; return r.features.map(f=>f.attributes[id])})
+    
+    //.then(r=>{console.error(r);const id = r.displayFieldName; return r.features.map(f=>f.attributes[id])})
 
+    // console.warn('bbox',[bboxosm[0].join(','),bboxosm[1].join(',')].join(','),centroids)
+
+    // point in polygon
+    centroids.filter(function(point) {
+      var n = coords.length,
+          p = coords[n - 1],
+          x = point[0], y = point[1],
+          x0 = p[0], y0 = p[1],
+          x1, y1,
+          inside = false;
+    
+      for (var i = 0; i < n; ++i) {
+        p = coords[i], x1 = p[0], y1 = p[1];
+        if (((y1 > y) !== (y0 > y)) && (x < (x0 - x1) * (y - y1) / (y0 - y1) + x1)) inside = !inside;
+        x0 = x1, y0 = y1;
+      }
+    
+      return inside;
+    })
+
+    console.warn('prepaint',centroids)
+
+// needs to be fill or line depending on the mode
+
+mapobject.setFilter("oa11_boundaries", ["in", "id", ...centroids]);
+
+
+      // mapobject.setPaintProperty("oa11_boundaries", "line-color", [
+      //   "match",
+      //   // ["get", "id"],
+      //   // ["literal", ...centroids],
+      //   // centroids,
+      //   ['get', 'areas'],
+      //   ['literal',[...centroids]],
+      //   // centroids,
+      //   "orange",
+      //   "green"
+      // ]);
+
+      // mapobject.setPaintProperty("oa11_boundaries", "line-color", [
+      //   "case",
+      //   ['within',geojson],
+      //   "orange",
+      //   "green"
+      // ]);
+
+    /*
     const selectedFeatures = mapobject.queryRenderedFeatures(bbox.map(d=>mapobject.project(d)), {
         layers: get(datalayers)
       });
@@ -283,7 +344,7 @@ function change (event) {
     //   // console.warn(map.setPaint("oa_boundary"), { "line-color": "blue" });
 
 
-
+*/
     
 
   }
