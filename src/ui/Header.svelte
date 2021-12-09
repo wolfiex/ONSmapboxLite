@@ -50,24 +50,21 @@
     padding: 1rem 0;
   }
   a {
-    color: $color-white;
+    color: white;
   }
   a:hover {
-    color: $color-white;
-    text-decoration: underline solid $color-white 2px;
+    color: white;
+    text-decoration: underline solid whitesmoke 2px;
   }
   a:focus {
-    background-color: $color-sun-yellow;
-    -webkit-box-shadow: 0 -2px $color-sun-yellow, 0 4px $color-black;
-    box-shadow: 0 -2px $color-sun-yellow, 0 4px $color-black;
-    color: $color-black;
+    background-color: yellow;
+    -webkit-box-shadow: 0 -2px yellow, 0 4px black;
+    box-shadow: 0 -2px yellow, 0 4px black;
+    color: black;
     outline: 3px solid transparent;
     text-decoration: none;
   }
 
-  @media only screen and (min-width: map-get($grid-bp, m)) {
-    .ons-header__main {
-      height: auto;
-    }
-  }
+
+  
 </style>

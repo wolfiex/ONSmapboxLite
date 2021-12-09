@@ -78,7 +78,7 @@
   </slot>
 </div>
 
-<style lang="scss" global>
+<style lang="scss">
   @import "./../../node_modules/@ons/design-system/scss/vars/_index.scss";
   .ons-page .ons-container {
     max-width: 100%;
@@ -88,14 +88,14 @@
   }
 
   .wrapper {
-    background: $color-grey-15;
+    /* background: $color-grey-15; */
     display: flex;
     flex-flow: column;
     position: relative;
   }
 
   .body {
-    background: $color-white;
+    background: whitesmoke;
   }
 
   .ons-footer {
@@ -107,50 +107,4 @@
     padding: 0;
   }
 
-  @media only screen and (max-width: map-get($grid-bp, s)) {
-    .ons-page {
-      background: url("/img/background.png") no-repeat center center;
-      background-size: cover;
-    }
-    .ons-page--has-map {
-      background: none;
-    }
-
-    .wrapper {
-      margin: 20px;
-      background: #c4c4c4;
-      width: calc(100% - 40px);
-    }
-    .ons-page--has-map .wrapper {
-      margin: 0;
-      width: 100%;
-    }
-    .body {
-      padding-top: 18px;
-      padding-bottom: 18px;
-    }
-  }
-
-  @media only screen and (min-width: map-get($grid-bp, s)) {
-    .wrapper .ons-container {
-      padding: 0 45px;
-    }
-    .header,
-    .body {
-      width: 489px;
-    }
-    .body {
-      padding-top: 24px;
-      padding-bottom: 24px;
-    }
-    .map {
-      position: absolute;
-      left: 489px;
-      width: calc(100% - 489px);
-      height: 100%;
-    }
-    .ons-footer__body {
-      margin: 0;
-    }
-  }
 </style>

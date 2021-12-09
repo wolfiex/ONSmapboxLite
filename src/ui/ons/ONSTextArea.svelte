@@ -30,3 +30,8 @@
     />
   </div>
 </ONSError>
+
+<style> 
+textarea {width: 100%;}
+
+</style>

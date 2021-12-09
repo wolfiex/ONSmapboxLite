@@ -6,6 +6,7 @@
 		margin: 0;
 		z-index: 2;
 		width: 40%;
+		max-width: 400px;
 		/* min-height: 100vh; */
 		position: absolute;
 	}

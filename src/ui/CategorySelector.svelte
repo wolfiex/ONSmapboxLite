@@ -1,23 +1,23 @@
 <script>
   export let categories = [
     {
-      code: "QS302EW001",
+      id: "QS302EW001",
       name: "Very good health",
     },
     {
-      code: "QS302EW002",
+      id: "QS302EW002",
       name: "Good health",
     },
     {
-      code: "QS302EW003",
+      id: "QS302EW003",
       name: "Fair health",
     },
     {
-      code: "QS302EW004",
+      id: "QS302EW004",
       name: "Bad health",
     },
     {
-      code: "QS302EW005",
+      id: "QS302EW005",
       name: "Very bad health",
     },
   ];
@@ -25,7 +25,7 @@
   export let selectedCode = "QS302EW002";
   export let selectedCatIndex = 0;
   categories.forEach((category, index) => {
-    if (category.code == selectedCode) {
+    if (category.id == selectedCode) {
       selectedCatIndex = index;
     }
   });

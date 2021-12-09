@@ -5,7 +5,103 @@
 
 
 <main>
-    <meta name="theme-color" content="currentcolor">
+    <!-- <meta name="theme-color" content="currentcolor"> -->
+
+
+
+<!-- <svelte:head> -->
+<!-- <title>2021 Census Data Atlas Design System</title>
+  <script defer src="https://cdn.ons.gov.uk/sdc/design-system/44.1.2/scripts/main.js"></script> -->
+<!-- </svelte:head> -->
+
+<!-- <ONSSkipLink />
+<ONSExternalHeaderWithDescription {serviceTitle} description={serviceDescription} />
+<ONSSkipLink /> -->
+
+<!-- <ONSCensusApp> -->
+
+
+<Panel>
+
+    
+        <div class="header col-wrap design-system-component-panel">
+            <div class="col col--lg-one-third col--md-one-third">
+                <a href="/">
+                    <img class="logo" width='200px' src="https://cdn.ons.gov.uk/assets/images/ons-logo/v2/ons-logo.svg"
+                        alt="Office for National Statistics logo - Homepage">
+                    <!--[endif]---->
+                </a>
+            </div>
+
+        </div><br>
+
+
+
+    <DesignSystemPanel title="Map Explore" code='NOTE: This is a demo - testing only'>
+
+
+
+
+
+        <!-- <BasePage mobileMap={false}> -->
+        <!-- <span slot="header"> -->
+        <Header serviceTitle="Draw Your Own Geography"
+            description="Select an Area, and then draw a shape to explore the data." />
+        <!-- </span> -->
+
+        <!-- <span slot="map"> -->
+
+        {#if $zoomed}
+
+
+        <ONSCard title="Drawing Tools" href="">
+            <div class="" style="">
+                <!-- <h1></h1> -->
+        
+                <form onsubmit="return false">
+                    <button on:click={()=>draw_type.set('draw_rectangle')}>Rectangular</button>
+                    <button on:click={()=>draw_type.set('draw_circle')}>Radius</button>
+                    <button on:click={()=>draw_type.set('draw_polygon')}>Custom Polygon</button>
+                    <button on:click={()=>{draw_type.set(undefined);$select=[]}}>Clear</button>
+                </form>
+                
+            </div>
+        </ONSCard>
+            
+                <ONSCard title="ONS Card" href="">
+                <CategorySelector categories={$levels} selectedCode='lsoa' />
+                </ONSCard>
+    {/if}
+
+                <ONSCard title="ONS Card" href="">
+            {#if ($level != undefined & $levels.length)}
+            <ONSRadios renderError={false} name="layer_radio">
+                {#each $levels as lv}
+                  <ONSRadio id={'radio-button-id-'+lv.id} value={lv.id} onChange={(radioValue) => console.log('ethnicity changed to', radioValue)}>{lv.name}</ONSRadio>
+                {/each}
+              </ONSRadios>
+            {/if}
+        </ONSCard>
+        
+        {#if $select.length}
+            <!-- <UseCensusData /> -->
+            <ONSCard title="Selected Areas" href="">
+            <ONSTextArea
+            id="text-area-selection"
+            hint={`You have selected ${$select.length} areas.`}
+            type="text"
+            textAreaValue={$select}
+            renderError={false}
+            accessiblePlaceholder
+            onInput={(textFieldValue) => console.log("Input user value: ", textFieldValue)}
+            onChange={(textFieldValue)=>console.log("Displays what user is typing every time they hit the return key: ",textFieldValue)}
+          />
+
+        </ONSCard>
+    {/if}
+</DesignSystemPanel>
+
+        </Panel>
 
 
 {#if !loaded}
@@ -13,118 +109,173 @@
 {/if}
 
 
-<AreaMap bind:draw_type={drwt}/>
+<AreaMap />
 
 
-<Panel>
-    <div class="" style="">
-        <h1>Draw Your Own Geography</h1>
-
-        <form onsubmit="return false">
-            <button on:click={()=>drwt.set('draw_rectangle')}>Rectangular</button>
-            <button on:click={()=>$drwt='draw_circle'}>Radius</button>
-            <button on:click={()=>$drwt='draw_polygon'}>Custom Polygon</button>
-        </form>
-        
-        </div>
-       
-    </Panel>
+<!-- </span> -->
+    <!-- </BasePage> -->
 </main>
 
 
 <script>
-    
-import { onMount } from "svelte";
-import {default as AreaMap} from './AreaMap.svelte';
+    import {
+	onMount
+} from "svelte";
+import {
+	default as AreaMap
+} from './AreaMap.svelte';
+import {
+	select,
+	mapsource,
+	maplayer,
+	mapobject,
+	draw_type,
+	levels,
+	level,
+	zoomed
+} from './mapstore.js'
 import Loader from './Loader.svelte';
+import { get } from 'svelte/store';
+
+// design system
+import BasePage from "./ui/BasePage.svelte";
+import Header from "./ui/Header.svelte";
+import DesignSystemPanel from "./ui/DesignSystemPanel.svelte";
+import ONSBacklink from './ui/ons/ONSBacklink.svelte';
+import UseCensusData from './ui/ons/ONSBacklink.svelte';
+import ONSRadios from './ui/ons/ONSRadios.svelte';
+import ONSRadio from './ui/ons/partials/ONSRadio.svelte';
+import ONSCard from './ui/ons/ONSCard.svelte';
+import ONSTextArea from './ui/ons/ONSTextArea.svelte';
+import CategorySelector from './ui/CategorySelector.svelte';
+import '../node_modules/normalize.css'
 
 import Panel from './Panel.svelte';
 // import AreaMap ,{ draw_type } from ".s/AreaMap";
 
-let loaded=false
+let loaded = false
 
-let drwt;
 
-async function init(){
+async function init() {
 
-    loaded = true;
-	console.log($drwt,AreaMap)
-	$drwt = 'draw_circle'
+	loaded = true;
+	$draw_type = 'simple_select'
 
 
 }
 
+console.error($select)
 
-// draw_type.set('draw_radius')
+$levels = [{
+		id: 'oa',
+		layerid: 'oa_layer',
+		name: 'Output Areas',
+		url: (bboxosm) => `https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/Output_Areas_December_${year}_Population_Weighted_Centroids/FeatureServer/0/query?f=json&returnIdsOnly=false&returnCountOnly=false&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=${[bboxosm[0].join(','),bboxosm[1].join(',')].join(',')}&where=1=1`
+	},
+
+	{
+		id: 'msoa',
+		layerid: 'msoa_layer',
+		name: 'Medium Layer Super Output Area',
+		url: (bboxosm) => `geometry=${[bboxosm[0].join(','),bboxosm[1].join(',')].join(',')}&maxRecordCount=10000`
+	},
+
+	{
+		id: 'lsoa',
+		layerid: 'lsoa_layer',
+		name: 'Lower Layer Super Output Area',
+		url: (bboxosm) => `https://ons-inspire.esriuk.com/arcgis/rest/services/Census_Boundaries/Lower_Super_Output_Areas_December_${year}_Centroids/MapServer/0/query?f=json&returnIdsOnly=false&returnCountOnly=false&returnGeometry=true&spatialRel=esriSpatialRelIntersects&geometry=${[bboxosm[0].join(','),bboxosm[1].join(',')].join(',')}&maxRecordCount=10000`
+	}
+]
 
 
 
-{/* <Map bind:map={map} style={mapstyle} minzoom={4} maxzoom={14} bind:zoom={mapZoom}>
-	<MapSource id="oa" type="vector" url={vector.url} layer={vector.layer} promoteId={vector.id} minzoom={8} >
-		{#if poplookup}
-		<MapLayer
-		  id="oa_fill"
-			source="oa"
-			sourceLayer={vector.layer}
-			type="fill"
-			click={true}
-			hover={true}
-			selected={codes['2011']}
-			bind:drawing={drawing}
-			on:click={clickSelect}
-			{hovered}
-			paint="{{
-			'fill-color': ['case',
-				['==', ['feature-state','selected'], true], 'rgba(0, 0, 0, 0.2)',
-				'rgba(0, 0, 0, 0)'
+
+$mapsource = {
+	'selector': {
+		'type': 'geojson',
+		'data': fetch('https://wolfiex.github.io/ONStileBuilder/tiles/CountiesUA.geojson').then(r => r.json()).then(r => {
+			delete r.crs;
+			return r
+		}),
+		// promoteId: { layer_name: 'select_data'}
+	},
+
+	//   'tiles':['https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tilemap/2/0/0/32/32?f=json']
+	//     tiles: ["https://cdn.ons.gov.uk/maptiles/t9/{z}/{x}/{y}.pbf"],
+
+	"oa": {
+		type: "vector",
+		tiles: ["https://cdn.ons.gov.uk/maptiles/administrative/lsoa/v1/boundaries/{z}/{x}/{y}.pbf"],
+		// promoteId: { OA_bound_ethnicity: "oa11cd" }
+	},
+
+	"oa11s": {
+		type: "vector",
+		tiles: ["https://wolfiex.github.io/ONStileBuilder/tiles/tileserver/{z}/{x}/{y}.pbf"],
+		//   layer: "OA11",
+		//   id: "oa11cd"
+	}
+
+};
+
+
+$maplayer = [
+	{
+		id: "select_layer",
+		type: "fill",
+		source: "selector",
+		paint: {
+			"fill-color": 'gray',
+			'fill-outline-color': '#232',
+			'fill-opacity': [
+				'case',
+				['boolean', ['feature-state', 'hover'], false],
+				.9,
+				0.4
+				]
+		},
+
+	},
+
+	{
+		id: "oa",
+		type: "fill",
+		source: "oa",
+		"source-layer": "boundaries",
+		paint: {
+			"fill-color": ["match",
+				['get', 'AREACD'],
+				['literal', ...$select],
+				'green',
+				'#206095',
 			],
-		}}" order="boundary_state" />
-		{/if}
-		<MapLayer id="oa_boundary" source="oa" sourceLayer={vector.layer} type="line" paint="{{
-			'line-color': ['case',
-				['==', ['feature-state','hovered'], true], 'rgb(0, 0, 0)',
-				'rgb(128, 128, 128)'
-			],
-			'line-width': ['case',
-				['==', ['feature-state','hovered'], true], 1,
-				0.25
-			],
-		}}" order="boundary_country" />
-	</MapSource>
-	{#if centroids}
-	<MapDraw on:draw={drawSelect} bind:draw={draw} bind:polygons={polygons} bind:drawing={drawing} bind:loaded={loaded} {centroids}/>
-	{/if}
-	{#if centroids}
-	<MapSource id="centroids" type="geojson" data={centroids} promoteId="id">
-		<MapLayer
-		  id="centroids11"
-			source="centroids"
-			type="circle"
-			filter={["==", "c11", true]}
-			paint="{{
-			'circle-color':  'rgba(0,0,0,0.5)',
-			'circle-radius': [
-				"interpolate", ["linear"], ["zoom"],
-				9, 0.3, 14, 2
-			]
-		}}" minzoom={8} />
-		<MapLayer
-		  id="centroids01"
-			source="centroids"
-			type="circle"
-			filter={[
-				"all",
-				["==", "c01", true],
-				["==", "c11", false]
-			]}
-			paint="{{
-			'circle-color':  'rgba(255,0,0,0.5)',
-			'circle-radius': [
-				"interpolate", ["linear"], ["zoom"],
-				9, 0.3, 14, 2
-			]
-		}}" minzoom={8} />
-	</MapSource> */}
+			'fill-opacity': 0.4,
+			'fill-outline-color': 'whitesmoke',
+		},
+		"light": {
+			"anchor": "viewport",
+			"color": "white",
+			"intensity": 0.3
+		},
+		'layout': {
+			'visibility': 'none'
+		},
+	},
+
+	{
+		id: "select_outline",
+		type: "line",
+		source: "selector",
+		paint: {
+			'line-color': '#232',
+			'line-width': 1.5,
+			'line-opacity': .5
+		},
+
+	},
+
+]
 
 
 
@@ -133,11 +284,10 @@ async function init(){
 
 
 onMount(init);
-
 </script>
 
 
-<style>
+<style lang="scss">
     :global(body) {
     margin: 0;
     padding: 0;

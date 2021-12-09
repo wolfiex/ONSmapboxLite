@@ -29,7 +29,7 @@ tm = Template(
 </script>
 
 
-<style>
+<style lang="scss">
     {{stylesheet}}
 </style>
 
