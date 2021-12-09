@@ -50,7 +50,10 @@ const year = '2011'
 //onsInspire 200 return (lsoa)
 // list all layers extracted from the sources. [order]:values
 //displayFieldName = wrong for areas 
-
+// sass
+// design  styling
+// no ids in tiles 
+// circle argorithm - AS lat and lon are different, selecting a raidus from the centre does not produce an even result 
 
 
 
@@ -66,7 +69,7 @@ async function init() {
     minZoom: minzoom,
     maxZoom: maxzoom,
     maxBounds: maxbounds,
-    pitch: 15,
+    pitch: 30,
     center: [0, 52],
     zoom: 4,
   });
@@ -239,19 +242,13 @@ async function init_draw() {
 
     console.warn(csource)
 
-    let centroids = await fetch(csource).then(r => r.json()).then(r => {
-      console.error(r);
-      const id = Object.keys(r.features[0].attributes)[0];
-      return r.features.map(f => f.attributes[id])
-    })
-
-
-    //  point in polygon
-    centroids.filter(function (point) {
+    let centroids = await fetch(csource).then(r => r.json()).then(r=>
+      //in polygon
+    r.features.filter(function (point) {
       var n = coords.length,
         p = coords[n - 1],
-        x = point[0],
-        y = point[1],
+        x = point.geometry.x,
+        y = point.geometry.y,
         x0 = p[0],
         y0 = p[1],
         x1, y1,
@@ -265,9 +262,15 @@ async function init_draw() {
 
       return inside;
     })
+    )
+    
+    .then(r => {
+      // console.error(r);
+      const id = Object.keys(r[0].attributes)[0];
+      return r.map(f => f.attributes[id])
+    })
 
-    console.warn('prepaint', centroids)
-
+    //  point in polygon
 
     $mapobject.setPaintProperty($level,
       "fill-color",

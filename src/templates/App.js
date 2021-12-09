@@ -124,19 +124,14 @@ $maplayer = [
 		source: "oa",
 		"source-layer": "boundaries",
 		paint: {
-			"fill-color": ["match",
-				['get', 'AREACD'],
-				['literal', ...$select],
-				'green',
-				'#206095',
-			],
-			'fill-opacity': 0.4,
-			'fill-outline-color': 'whitesmoke',
+			"fill-color": 'rgba(32, 96, 149,.5  )',
+			'fill-opacity': 1,
+			'fill-outline-color': 'white',
 		},
 		"light": {
 			"anchor": "viewport",
 			"color": "white",
-			"intensity": 0.3
+			"intensity": 10.3
 		},
 		'layout': {
 			'visibility': 'none'
